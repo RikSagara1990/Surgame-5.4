@@ -1,0 +1,63 @@
+# .gitignore for Unreal Engine projects
+
+# Build folders
+/Binaries/
+/DerivedDataCache/
+/Intermediate/
+/Saved/
+
+# Unreal Engine project files
+*.suo
+*.user
+*.userprefs
+*.csproj
+*.vscode/
+*.vcxproj
+*.vcxproj.filters
+*.xcodeproj
+
+# Ignore the .vs folder (Visual Studio's cache directory)
+.vs/
+
+# Visual Studio for Mac files
+.vscode/
+
+# macOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
+
+# Unreal Engine generated config files
+*.ini
+
+# Temporary files
+*.log
+*.vspscc
+*.sln
+*.suo
+*.xcodeproj
+
+# Ignore Editor-specific directories
+/Plugins/ProjectName/Intermediate/
+
+# Ignore solution files if building with a different IDE (optional)
+*.sln
+*.suo
+
+# Ignore Unreal Engine generated files for certain platforms (e.g., for mobile or console)
+*.apk
+*.ipa
+*.dmg
+
+# Other common ignored files
+*.bak
+*.swp
+*.tmp
+*.log
+
+# Ignore JetBrains IDE files
+.idea/
+
+# Ignore Visual Studio configuration files
+.vsconfig
