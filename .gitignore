@@ -29,7 +29,7 @@
 Thumbs.db
 
 # Unreal Engine generated config files
-*.ini
+#*.ini
 
 # Temporary files
 *.log
