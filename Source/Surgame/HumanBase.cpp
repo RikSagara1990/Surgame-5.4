@@ -2,6 +2,7 @@
 
 #include "HumanBase.h"
 
+#include "EnduranceComponent.h"
 #include "HumanoidAnim.h"
 #include "UnitDataBase.h"
 #include "UnitWidget.h"
@@ -38,6 +39,7 @@ AHumanBase::AHumanBase()
 	Widget->SetOwnerNoSee(true);
 	Widget->SetupAttachment(GetRootComponent());
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
+	EnduranceComponent = CreateDefaultSubobject<UEnduranceComponent>(TEXT("Endurance Component"));
 }
 
 // Called when the game starts or when spawned
@@ -94,13 +96,13 @@ void AHumanBase::UpdateCurrentSpeed(float DeltaTime)
 
 void AHumanBase::UpdateEndurance(float DeltaTime)
 {
-	if(!MyGameStateBase)
+	if(!MyGameStateBase || !EnduranceComponent)
 		return;
 		
 	if(ReplicationSprint)
 	{
 		const float EnduranceCost = MyGameStateBase->ActionEnduranceCost[EAction::Spring] * DeltaTime;
-		SetEndurance(GetEndurance() - EnduranceCost);
+		EnduranceComponent->SetEndurance(EnduranceComponent->GetEndurance() - EnduranceCost);
 		
 		EnduranceRecoveryDelay = MyGameStateBase->EnduranceRecoveryDelay;
 	}
@@ -109,7 +111,7 @@ void AHumanBase::UpdateEndurance(float DeltaTime)
 		if(EnduranceRecoveryDelay > 0)
 			EnduranceRecoveryDelay -= DeltaTime;
 		else
-			SetEndurance(GetEndurance() + 1 * DeltaTime);
+			EnduranceComponent->SetEndurance(EnduranceComponent->GetEndurance() + 1 * DeltaTime);
 	}
 }
 
@@ -215,7 +217,6 @@ void AHumanBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 #pragma region Interaction
 EAction AHumanBase::GetTypeInteract()
 {
-	int health = HealthComponent->GetHealth();
 	if(HealthComponent && HealthComponent->GetHealth() > 0)
 		return EAction::Attack;
 	
@@ -260,10 +261,10 @@ void AHumanBase::Dead() const
 
 void AHumanBase::Jump()
 {
-	if(!MyGameStateBase || !HumanoidAnim || !HumanoidAnim->IsHaveAnimation(EAction::Jump))
+	if(!MyGameStateBase || !HumanoidAnim || !HumanoidAnim->IsHaveAnimation(EAction::Jump) || !EnduranceComponent)
 		return;
 	
-	SetEndurance(GetEndurance() - MyGameStateBase->ActionEnduranceCost[EAction::Jump]);
+	EnduranceComponent->SetEndurance(EnduranceComponent->GetEndurance() - MyGameStateBase->ActionEnduranceCost[EAction::Jump]);
 	
 	Super::Jump();
 
@@ -281,8 +282,9 @@ void AHumanBase::Action(EAction Action)
 	//todo end work here
 	if(!HumanoidAnim->IsHaveAnimation(Action))
 		return;
-	
-	SetEndurance(GetEndurance() - MyGameStateBase->ActionEnduranceCost[Action]);
+
+	if(EnduranceComponent)
+		EnduranceComponent->SetEndurance(EnduranceComponent->GetEndurance() - MyGameStateBase->ActionEnduranceCost[Action]);
 
 	HumanoidAnim->PlayActionAnim(Action);
 
@@ -379,9 +381,6 @@ void AHumanBase::Initialize()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Missing my StaticData")));
 		return;
 	}
-	
-	MaxEndurance = StaticData->Endurance;
-	SetEndurance(StaticData->Endurance);
 
 	AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &AHumanBase::OnOverlapBegin);
 	AttackCollision->OnComponentEndOverlap.AddDynamic(this,&AHumanBase::OnOverlapEnd);
@@ -394,6 +393,13 @@ void AHumanBase::Initialize()
 	{
 		int StartHealth = StaticData->Health;
 		HealthComponent->Initialized(StartHealth, StartHealth);
+	}
+
+	if(EnduranceComponent)
+	{
+		MaxEndurance = StaticData->Endurance;
+		EnduranceComponent->SetMaxEndurance(StaticData->Endurance);
+		EnduranceComponent->SetFullEndurance();
 	}
 }
 
@@ -443,8 +449,11 @@ bool AHumanBase::CanUseAction(const EAction Action) const
 
 bool AHumanBase::IsHaveEnduranceForAction(EAction Action) const
 {
+	if(!EnduranceComponent)
+		return false;
+	
 	if (MyGameStateBase->ActionEnduranceCost.Contains(Action))
-		if (GetEndurance() < MyGameStateBase->ActionEnduranceCost[Action])
+		if (EnduranceComponent->GetEndurance() < MyGameStateBase->ActionEnduranceCost[Action])
 			return false;
 
 	return true;

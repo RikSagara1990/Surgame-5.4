@@ -2,6 +2,8 @@
 
 #include "PlayerWidget.h"
 #include <Components/ProgressBar.h>
+
+#include "EnduranceComponent.h"
 #include "Components/TextBlock.h"
 
 void UPlayerWidget::SetHumanBase(AHumanBase* InHumanBase)
@@ -10,10 +12,6 @@ void UPlayerWidget::SetHumanBase(AHumanBase* InHumanBase)
 void UPlayerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-	// if(HumanBase)
-	// 	Update_EnduranceBar();
-	// else
-	// 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("HumanBase is missing")));
 }
 
 void UPlayerWidget::NativeConstruct()
@@ -25,7 +23,6 @@ void UPlayerWidget::NativeConstruct()
 	{
 		HumanBase->UpdateCurrentUnitParameters.BindUObject(this, &UPlayerWidget::Update_UnitParameters);
 		HumanBase->UpdateCurrentUnitExperience.BindUObject(this, &UPlayerWidget::Update_ExperienceBar);
-		HumanBase->UpdateCurrentUnitEndurance.BindUObject(this, &UPlayerWidget::Update_EnduranceBar);
 		
 		HealthComponent = HumanBase->HealthComponent;
 		if(!HealthComponent)
@@ -33,6 +30,12 @@ void UPlayerWidget::NativeConstruct()
 		if(HealthComponent)
 			HealthComponent->UpdateHealth.AddUObject(this, &UPlayerWidget::Update_HealthBar);
 		Update_HealthBar();
+
+		EnduranceComponent = HumanBase->EnduranceComponent;
+		if(!EnduranceComponent)
+			EnduranceComponent = HumanBase->FindComponentByClass<UEnduranceComponent>();
+		if(EnduranceComponent)
+			EnduranceComponent->UpdateEndurance.AddUObject(this, &UPlayerWidget::Update_EnduranceBar);
 	}
 	else
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("HumanBase is not found")));	
@@ -59,8 +62,10 @@ void UPlayerWidget::Update_HealthBar() const
 
 void UPlayerWidget::Update_EnduranceBar() const
 {
-	const float CurrentEndurance = HumanBase->GetEndurance() / 100;
-	EnduranceProgressBar->SetPercent(CurrentEndurance);
+	if(!EnduranceComponent)
+		return;
+	
+	EnduranceProgressBar->SetPercent(EnduranceComponent->GetEnduranceInPercent());
 }
 
 void UPlayerWidget::Update_ExperienceBar() const

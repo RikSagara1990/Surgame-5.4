@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UHealthComponent* HealthComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UEnduranceComponent* EnduranceComponent;
+
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HealthProgressBar;
 

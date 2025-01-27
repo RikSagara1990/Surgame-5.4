@@ -51,16 +51,19 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HumanBase")
 	UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HumanBase")
+	UEnduranceComponent* EnduranceComponent;
 	
-	float GetEndurance() const { return CurrentEndurance; }
-	void SetEndurance(float val) {
-		CurrentEndurance = val; 
-		if (CurrentEndurance < 0)
-			CurrentEndurance = 0;
-		if (CurrentEndurance > MaxEndurance)
-			CurrentEndurance = MaxEndurance;
-		UpdateCurrentUnitEndurance.ExecuteIfBound();
-	}
+	// float GetEndurance() const { return CurrentEndurance; }
+	// void SetEndurance(float val) {
+	// 	CurrentEndurance = val; 
+	// 	if (CurrentEndurance < 0)
+	// 		CurrentEndurance = 0;
+	// 	if (CurrentEndurance > MaxEndurance)
+	// 		CurrentEndurance = MaxEndurance;
+	// 	UpdateCurrentUnitEndurance.ExecuteIfBound();
+	// }
 
 	int GetCharacterLevel() const { return CurrentLevel; }
 	void SetCharacterLevel(int val) {
